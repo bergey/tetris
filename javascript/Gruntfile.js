@@ -6,7 +6,7 @@ module.exports = function(grunt) {
     grunt.initConfig({
         bower: {
             target: {
-                rjsConfig: "rjs.js" // file with requirejs module -> file mappings
+                rjsConfig: "js/rjs.js" // file with requirejs module -> file mappings
             }
         },
         jshint: {
