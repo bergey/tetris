@@ -1,11 +1,12 @@
 /* global document, define */
 
-define(["react",], function (React) {
+define(["react", "ui"], function (React, ui) {
     "use strict";
 
     var r = React.DOM;
 
     React.renderComponent(
-        r.p({}, ["This text made by React."]),
-        document.getElementById("example"));
+        // r.p({}, ["This text made by React."]),
+        ui(),
+        document.getElementById("tetris"));
 });
