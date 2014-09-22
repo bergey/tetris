@@ -1,10 +1,12 @@
-/* global define */
+/* global define, console, key */
 
-define(["react", "underscore"], function (React, _) {
+define(["react", "underscore", "logic"], function (React, _, logic) {
     "use strict";
 
+    console.log(key);
+
     var r = React.DOM;
-    var colors = ["black", "red", "green", "cyan", "magenta"];
+    var colors = ["black", "red", "green", "cyan", "magenta", "yellow"];
     var board = [
         [0,0,0,0,0,0,0,0,0,0],
         [0,0,0,0,0,0,0,0,0,0],
@@ -50,16 +52,30 @@ define(["react", "underscore"], function (React, _) {
     return React.createClass({
         displayName: "tetrisUI",
         render: function() {
-            return r.div({},
-                         _.map(board, function(row, i) {
-                             return tetrisRow({blocks: row, key: i});
-                         }));
+            return r.div({
+                onClick: this.incrementBoard,
+                onDoubleClick: this.decrementBoard
+            },
+                _.map(this.state.board, function(row, i) {
+                    return tetrisRow({blocks: row, key: i});
+                }));
         },
         getInitialState: function() {
             return {board: board};
         },
-        // onKeyDown: function() {
-        //     this.setState({board: _.rest(board).append(_.first(board))});
-        // }
+        componentDidMount: function() {
+            key("left", this.decrementBoard);
+            key("right", this.incrementBoard);
+        },
+        incrementBoard: function() {
+            console.log("incrementing");
+            this.setState({
+                board: logic.incrementBoard(this.state.board)});
+                                   },
+        decrementBoard: function() {
+            console.log("decrementing");
+            this.setState({
+                board: logic.decrementBoard(this.state.board)});
+        }
     });
 });

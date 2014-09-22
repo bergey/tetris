@@ -3,7 +3,7 @@
 define(["react", "ui"], function (React, ui) {
     "use strict";
 
-    var r = React.DOM;
+    // var r = React.DOM;
 
     React.renderComponent(
         // r.p({}, ["This text made by React."]),
