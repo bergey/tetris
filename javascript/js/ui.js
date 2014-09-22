@@ -6,21 +6,6 @@ define(["react", "underscore", "logic"], function (React, _, logic) {
     console.log(key);
 
     var r = React.DOM;
-    var colors = ["black", "red", "green", "cyan", "magenta", "yellow"];
-    var board = [
-        [0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0],
-        [0,1,2,2,3,4,4,4,0,1],
-        [2,1,0,4,3,1,1,0,1,2]
-    ];
 
     var cell = React.createClass({
         displayName: "tetrisCell",
@@ -43,7 +28,7 @@ define(["react", "underscore", "logic"], function (React, _, logic) {
                 "clear": "both"
             }},
                         _.map(this.props.blocks, function(c,i) {
-                            return cell({color: colors[c], key: i});
+                            return cell({color: logic.color(c), key: i});
                         }));
         }
     });
@@ -53,29 +38,50 @@ define(["react", "underscore", "logic"], function (React, _, logic) {
         displayName: "tetrisUI",
         render: function() {
             return r.div({
-                onClick: this.incrementBoard,
-                onDoubleClick: this.decrementBoard
+                onClick: this.incrementBoard,                
             },
-                _.map(this.state.board, function(row, i) {
+                _.map(logic.drawable(this.state), function(row, i) {
                     return tetrisRow({blocks: row, key: i});
                 }));
         },
         getInitialState: function() {
-            return {board: board};
+            var d = new Date().getTime();
+            return logic.initialGameState(d);
         },
+        
         componentDidMount: function() {
-            key("left", this.decrementBoard);
-            key("right", this.incrementBoard);
+            key("left", this.moveLeft);
+            key("right", this.moveRight);
+            this.interval = setInterval(this.updateGame, 100);
         },
+
+        componentWillUnmount: function() {
+            clearInterval(this.interval);
+        },
+
         incrementBoard: function() {
             console.log("incrementing");
             this.setState({
                 board: logic.incrementBoard(this.state.board)});
-                                   },
+        },
+        
         decrementBoard: function() {
             console.log("decrementing");
             this.setState({
                 board: logic.decrementBoard(this.state.board)});
+        },
+
+        moveRight: function() {
+            this.setState(logic.moveRight(this.state));
+        },
+
+        moveLeft: function() {
+            this.setState(logic.moveLeft(this.state));
+        },
+
+        updateGame: function() {
+            this.setState(logic.updateGame(this.state));
         }
+        
     });
 });
