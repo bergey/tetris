@@ -2,7 +2,7 @@
 
 define(["underscore", "seedrandom"], function (_, seedrandom) {
     "use strict";
-    // 7 possible blocks, plus black for the background
+    // 7 possible shapes, plus black for the background
     var boardWidth = 10;  // number of cells in each row of the game board
     var boardHeight = 20; // number of rows in the game board
     var colors = ["grey17", "red3", "darkgoldenrod", "aquamarine", "deeppink4", "forestgreen", "royalblue4", "blueviolet"];
@@ -33,18 +33,18 @@ define(["underscore", "seedrandom"], function (_, seedrandom) {
         return Math.floor(prng() * 7) + 1;
     };
 
-    ret.color = function(blockID) {
-        return colors[blockID];
+    ret.color = function(shape) {
+        return colors[shape];
     };
 
-    var blankRow = function() {
+    ret.blankRow = function() {
         return _.map(_.range(boardWidth), _.constant(0));
     };
     
     // Given a list of lists, extend it to $boardHeight rows by prepending empty (0) rows.
     // If the list has $boardHeight or more rows, return it unaltered.
     ret.padBoard = function(board) {
-        _.map(_.range(boardHeight-board.length), blankRow).concat(board);
+        return _.map(_.range(boardHeight-board.length), ret.blankRow).concat(board);
     };
 
     var initialPosition = function() {
@@ -55,7 +55,7 @@ define(["underscore", "seedrandom"], function (_, seedrandom) {
         var prng = seedrandom();
         return {
             currentPiece: {
-                block: ret.nextBlock(prng),  // 1-7
+                shape: ret.nextBlock(prng),  // 1-7
                 position: initialPosition(), // (0-boardWidth, 0-boardHeight)
                 orientation: 0  // 0-3
             },
@@ -115,6 +115,8 @@ define(["underscore", "seedrandom"], function (_, seedrandom) {
 
         // a list of offsets for each shape
         var offsets = [
+            // empty cell
+            [],
             // square
             [[0,0], [0,1], [1,0], [1,1]],           
             // L
@@ -141,16 +143,18 @@ define(["underscore", "seedrandom"], function (_, seedrandom) {
     ret.drawable = function(gs) {
         var b = Object.create(gs.board);
         _.each(ret.blockCells(gs.currentPiece), function(pos) {
-            b[pos[0]][pos[1]] = gs.currentPiece.block;
+            b[pos[0]][pos[1]] = gs.currentPiece.shape;
         });
         return b;
     };
     
     // given a board and a piece, returns True iff that piece colides
     // with others already placed.
-    ret.collision = function(board, p) {
-        return _.any(ret.blockCells(p), function(pos) {
-            return ret.lookupBoard([pos[0]][pos[1]]) !== 0;
+    ret.collision = function(board, piece) {
+        return _.any(ret.blockCells(piece), function(pos) {            
+            return pos[1] < 0 || pos[1] >= boardWidth ||
+                pos[0] < 0 || pos[0] >= boardHeight ||
+                ret.lookupBoard(board, pos) !== 0;
         });
     };
 
@@ -161,7 +165,7 @@ define(["underscore", "seedrandom"], function (_, seedrandom) {
                 return oldGame;
             } else {
                 var newGame = Object.create(oldGame);
-                newGame.piece = newPiece;
+                newGame.currentPiece = newPiece;
                 return newGame;
             }           
         };
@@ -190,7 +194,9 @@ define(["underscore", "seedrandom"], function (_, seedrandom) {
     ret.rotateCCW = ret.makeMove(ret.rotate(-1));
 
     ret.updateGame = function(gs, t) {
-        if (gs.lastDrop + gs.timeStep < t) {
+        // console.log(t - gs.lastDrop);       
+        if (t < gs.lastDrop + gs.timeStep) {
+            // console.log("returning GameState unmodified");
             return gs;
         } else {
             // move block down if possible
@@ -198,17 +204,19 @@ define(["underscore", "seedrandom"], function (_, seedrandom) {
             newGS.lastDrop = t;
             // if it can't move down more, score lines
             var newPiece = ret.translate([1,0])(gs.currentPiece);
-            if (ret.collision(gs.board, newPiece)) {
+            if (ret.collision(gs.board, newPiece)) {                
                 var board = ret.drawable(newGS);
                 newGS.lines += ret.countRows(board);
                 newGS.board = ret.deleteRows(board);
                 newGS.currentPiece = {
-                    block: ret.nextBlock(newGS.prng),
+                    shape: ret.nextBlock(newGS.prng),
                     orientation: 0,
                     position: initialPosition()
                 };
-                return newGS;
             }
+            console.log(newGS);
+            console.log(newGS.currentPiece.position);
+            return newGS;
         }
     };
     

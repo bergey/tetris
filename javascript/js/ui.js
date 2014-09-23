@@ -3,9 +3,9 @@
 define(["react", "underscore", "logic"], function (React, _, logic) {
     "use strict";
 
-    console.log(key);
-
     var r = React.DOM;
+
+    var gs = logic.initialGameState(0);
 
     var cell = React.createClass({
         displayName: "tetrisCell",
@@ -33,10 +33,10 @@ define(["react", "underscore", "logic"], function (React, _, logic) {
         }
     });
 
-
     return React.createClass({
         displayName: "tetrisUI",
         render: function() {
+            // console.log(this.state.board);
             return r.div({
                 onClick: this.incrementBoard,                
             },
@@ -45,7 +45,7 @@ define(["react", "underscore", "logic"], function (React, _, logic) {
                 }));
         },
         getInitialState: function() {
-            var d = new Date().getTime();
+            var d = Date.now();
             return logic.initialGameState(d);
         },
         
@@ -80,7 +80,9 @@ define(["react", "underscore", "logic"], function (React, _, logic) {
         },
 
         updateGame: function() {
-            this.setState(logic.updateGame(this.state));
+            var gs = logic.updateGame(this.state, Date.now());
+            // console.log(gs);
+            this.setState(gs);
         }
         
     });
