@@ -1,7 +1,22 @@
-/* global define */
+/* global require, module */
 
-define(["underscore", "seedrandom"], function (_, seedrandom) {
-    "use strict";
+"use strict";
+
+var _ = require("lodash");
+var seedrandom = require("seedrandom");
+
+// lodash in git HEAD has negate; copied here
+if (!_.hasOwnProperty("negate")) {
+    _.negate =  function negate(predicate) {
+      if (!_.isFunction(predicate)) {
+        throw new TypeError("negate called on a non-function");
+      }
+      return function() {
+        return !predicate.apply(this, arguments);
+      };
+    };
+}
+
     // 7 possible shapes, plus black for the background
     var boardWidth = 10;  // number of cells in each row of the game board
     var boardHeight = 20; // number of rows in the game board
@@ -18,7 +33,7 @@ define(["underscore", "seedrandom"], function (_, seedrandom) {
             });
         });
     };
-    
+
     // debugging
     // decrement all block ids by 1
     ret.decrementBoard = function(board) {
@@ -40,7 +55,7 @@ define(["underscore", "seedrandom"], function (_, seedrandom) {
     ret.blankRow = function() {
         return _.map(_.range(boardWidth), _.constant(0));
     };
-    
+
     // Given a list of lists, extend it to $boardHeight rows by prepending empty (0) rows.
     // If the list has $boardHeight or more rows, return it unaltered.
     ret.padBoard = function(board) {
@@ -50,7 +65,7 @@ define(["underscore", "seedrandom"], function (_, seedrandom) {
     var initialPosition = function() {
         return Object.create([0, Math.floor(boardWidth/2)]);
     };
-    
+
     ret.initialGameState = function(time) {
         var prng = seedrandom();
         return {
@@ -67,7 +82,7 @@ define(["underscore", "seedrandom"], function (_, seedrandom) {
             prng: prng
         };
     };
-    
+
 
     // returns True iff every cell of the row is filled
     ret.isFullRow = function(row) {
@@ -103,7 +118,7 @@ define(["underscore", "seedrandom"], function (_, seedrandom) {
     ret.vadd = function(u, v) {
         return [u[0] + v[0], u[1] + v[1]];
     };
-    
+
     ret.blockCells = function(p) {
 
         var rot = [
@@ -118,7 +133,7 @@ define(["underscore", "seedrandom"], function (_, seedrandom) {
             // empty cell
             [],
             // square
-            [[0,0], [0,1], [1,0], [1,1]],           
+            [[0,0], [0,1], [1,0], [1,1]],
             // L
             [[1,-1], [0,-1], [0,0], [0,1]],
             // Γ
@@ -147,11 +162,11 @@ define(["underscore", "seedrandom"], function (_, seedrandom) {
         });
         return b;
     };
-    
+
     // given a board and a piece, returns True iff that piece colides
     // with others already placed.
     ret.collision = function(board, piece) {
-        return _.any(ret.blockCells(piece), function(pos) {            
+        return _.any(ret.blockCells(piece), function(pos) {
             return pos[1] < 0 || pos[1] >= boardWidth ||
                 pos[0] < 0 || pos[0] >= boardHeight ||
                 ret.lookupBoard(board, pos) !== 0;
@@ -159,7 +174,7 @@ define(["underscore", "seedrandom"], function (_, seedrandom) {
     };
 
     ret.makeMove = function(move) {
-        return function(oldGame) {           
+        return function(oldGame) {
             var newPiece = move(oldGame.currentPiece);
             if (ret.collision(oldGame.board, newPiece)) {
                 return oldGame;
@@ -167,7 +182,7 @@ define(["underscore", "seedrandom"], function (_, seedrandom) {
                 var newGame = Object.create(oldGame);
                 newGame.currentPiece = newPiece;
                 return newGame;
-            }           
+            }
         };
     };
 
@@ -194,7 +209,7 @@ define(["underscore", "seedrandom"], function (_, seedrandom) {
     ret.rotateCCW = ret.makeMove(ret.rotate(-1));
 
     ret.updateGame = function(gs, t) {
-        // console.log(t - gs.lastDrop);       
+        // console.log(t - gs.lastDrop);
         if (t < gs.lastDrop + gs.timeStep) {
             // console.log("returning GameState unmodified");
             return gs;
@@ -204,7 +219,7 @@ define(["underscore", "seedrandom"], function (_, seedrandom) {
             newGS.lastDrop = t;
             // if it can't move down more, score lines
             var newPiece = ret.translate([1,0])(gs.currentPiece);
-            if (ret.collision(gs.board, newPiece)) {                
+            if (ret.collision(gs.board, newPiece)) {
                 var board = ret.drawable(newGS);
                 newGS.lines += ret.countRows(board);
                 newGS.board = ret.deleteRows(board);
@@ -219,6 +234,5 @@ define(["underscore", "seedrandom"], function (_, seedrandom) {
             return newGS;
         }
     };
-    
-    return ret;
-});
+
+module.exports = ret;

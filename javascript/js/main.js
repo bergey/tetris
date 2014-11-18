@@ -1,12 +1,15 @@
-/* global document, define */
+/* global document, window, require */
 
-define(["react", "ui"], function (React, ui) {
-    "use strict";
+"use strict";
 
-    // var r = React.DOM;
+// define(["react", "ui"], function (React, ui) {
+var React = require("react");
+var ui = React.createFactory(require("./ui"));
 
-    React.renderComponent(
+// var r = React.DOM;
+window.onload = function() {
+    React.render(
         // r.p({}, ["This text made by React."]),
         ui(),
         document.getElementById("tetris"));
-});
+};

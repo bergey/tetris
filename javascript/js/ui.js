@@ -1,7 +1,12 @@
-/* global define, console, key */
+/* global require, console, module */
 
-define(["react", "underscore", "logic"], function (React, _, logic) {
-    "use strict";
+// define(["react", "underscore", "logic"], function (React, _, logic) {
+"use strict";
+
+var React = require("react");
+var _ = require("lodash");
+var logic = require("./logic");
+var key = require("keymaster");
 
     var r = React.DOM;
 
@@ -33,12 +38,12 @@ define(["react", "underscore", "logic"], function (React, _, logic) {
         }
     });
 
-    return React.createClass({
+module.exports = React.createClass({
         displayName: "tetrisUI",
         render: function() {
             // console.log(this.state.board);
             return r.div({
-                onClick: this.incrementBoard,                
+                onClick: this.incrementBoard,
             },
                 _.map(logic.drawable(this.state), function(row, i) {
                     return tetrisRow({blocks: row, key: i});
@@ -48,7 +53,7 @@ define(["react", "underscore", "logic"], function (React, _, logic) {
             var d = Date.now();
             return logic.initialGameState(d);
         },
-        
+
         componentDidMount: function() {
             key("left", this.moveLeft);
             key("right", this.moveRight);
@@ -64,7 +69,7 @@ define(["react", "underscore", "logic"], function (React, _, logic) {
             this.setState({
                 board: logic.incrementBoard(this.state.board)});
         },
-        
+
         decrementBoard: function() {
             console.log("decrementing");
             this.setState({
@@ -84,6 +89,5 @@ define(["react", "underscore", "logic"], function (React, _, logic) {
             // console.log(gs);
             this.setState(gs);
         }
-        
+
     });
-});
