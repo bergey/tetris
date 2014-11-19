@@ -2,13 +2,14 @@
 
 "use strict";
 
-var filter = require("gulp-filter");
 var browserSync = require("browser-sync");
 var browserify = require("browserify");
 var del = require("del");
+var filter = require("gulp-filter");
 var ghPages = require("gulp-gh-pages");
 var gulp = require("gulp");
 var gutil = require("gulp-util");
+var mocha = require("gulp-mocha");
 var runSequence = require("run-sequence");
 var sass = require("gulp-ruby-sass");
 var source = require("vinyl-source-stream");
@@ -152,5 +153,10 @@ gulp.task("dist", function(cb) {
 });
 
 gulp.task("dist-watch", ["dist", "browser-sync-dist"]);
+
+gulp.task("test", function() {
+    return gulp.src("test/*.js", {read: false})
+        .pipe(mocha({}));
+});
 
 gulp.task("default", ["watch"]);
