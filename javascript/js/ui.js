@@ -10,22 +10,22 @@ var key = require("keymaster");
 
 var r = React.DOM;
 
-var gs = logic.initialGameState(0);
+var cell = React.createFactory(
+    React.createClass({
+        displayName: "tetrisCell",
+        render: function() {
+            return r.div({
+                style: {
+                    "background": this.props.color,
+                    "width": "20px",
+                    "height": "20px",
+                    "float": "left"
+                }});
+        }
+    }));
 
-var cell = React.createClass({
-    displayName: "tetrisCell",
-    render: function() {
-        return r.div({
-            style: {
-                "background": this.props.color,
-                "width": "20px",
-                "height": "20px",
-                "float": "left"
-            }});
-    }
-});
-
-var tetrisRow = React.createClass({
+var tetrisRow = React.createFactory(
+    React.createClass({
     displayName: "tetrisRow",
     render: function() {
         return r.div({
@@ -36,7 +36,7 @@ var tetrisRow = React.createClass({
                          return cell({color: logic.color(c), key: i});
                      }));
     }
-});
+    }));
 
 module.exports = React.createClass({
     displayName: "tetrisUI",

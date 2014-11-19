@@ -209,30 +209,38 @@ ret.rotateCW = ret.makeMove(ret.rotate(1));
 ret.rotateCCW = ret.makeMove(ret.rotate(-1));
 
 ret.updateGame = function(gs, t) {
+    var newGS, newPiece, board;
     // console.log(t - gs.lastDrop);
     if (t < gs.lastDrop + gs.timeStep) {
         // console.log("returning GameState unmodified");
         return gs;
     } else {
+        // console.log(t - gs.lastDrop);
         // move block down if possible
-        var newGS = ret.moveDown(gs);
+        newGS = ret.moveDown(gs);
         newGS.lastDrop = t;
         // if it can't move down more, score lines
-        var newPiece = ret.translate([1,0])(gs.currentPiece);
+        newPiece = ret.translate([1,0])(gs.currentPiece);
         if (ret.collision(gs.board, newPiece)) {
-            var board = ret.drawable(newGS);
+            console.log("collision");
+            console.log(newGS);
+            board = ret.drawable(newGS);
             newGS.lines += ret.countRows(board);
             newGS.board = ret.deleteRows(board);
             newGS.currentPiece = {
-                shape: ret.nextBlock(newGS.prng),
+                shape: gs.nextBlock,
                 orientation: 0,
                 position: initialPosition()
             };
+            newGS.nextBlock = ret.nextBlock(newGS.prng);
+        } else {
+            console.log("no collision");
         }
-        console.log(newGS);
-        console.log(newGS.currentPiece.position);
+        // console.log(newGS);
+        // console.log(newGS.currentPiece.position);
         return newGS;
     }
 };
 
 module.exports = ret;
+_
