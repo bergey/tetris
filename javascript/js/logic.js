@@ -112,6 +112,18 @@ var initialPosition = function() {
     return Object.create([0, Math.floor(logic.boardWidth/2)]);
 };
 
+/**
+ * A number between 0 and 3 describing the rotation of a tetris block.
+ * @typedef {number} Orientation
+ */
+
+/**
+ * @typedef {Object} Piece
+ * @property {Block} shape
+ * @property {Position} position
+ * @property {Orientation} orientation
+ */
+
 logic.initialGameState = function(time) {
     var prng = seedrandom();
     return {
@@ -156,12 +168,33 @@ logic.deleteRows = function(board) {
     return logic.padBoard(_.filter(board, _.negate(logic.isFullRow)));
 };
 
-// given a board and a position as [row, column], return the specified cell of the board
+/**
+ * A board position, represented as row and column.
+ * [0,0] is the upper left cell
+ * [0,1] is in the top row
+ * @typedef {Array.<number>} Position - [row, column]
+ */
+
+/**
+ * A 2D vector, not in general a board position.
+ * @typedef {Array.<number>} V2 - [x, y]
+ */
+
+/**
+ * Look up a cell in the Board
+ * @param {Board} board
+ * @param {Position} position
+ * @returns {MaybeBlock}
+ */
 logic.lookupBoard = function(board, position) {
     return board[position[0]][position[1]];
 };
 
-// multiply a 2x2 matrix r by a (column) vector v
+/**
+ * Multiply a 2x2 matrix r by a (column) vector v
+ * @param {Matrix} r
+ * @param {V2} v
+ */
 logic.mmul = function(r, v) {
     return [
         r[0][0]*v[0] + r[0][1]*v[1],
@@ -169,10 +202,20 @@ logic.mmul = function(r, v) {
     ];
 };
 
+/**
+ * Add together two 2-element vectors
+ * @param {V2} u
+ * @param {V2} v
+ */
 logic.vadd = function(u, v) {
     return [u[0] + v[0], u[1] + v[1]];
 };
 
+/**
+ * Look up the Positions that a given Piece occupies
+ * @param {Piece} p
+ * @returns {Array.<Position>}
+ */
 logic.blockCells = function(p) {
 
     var rot = [
@@ -208,7 +251,11 @@ logic.blockCells = function(p) {
     });
 };
 
-// returns a board with the current piece colored in.
+/**
+ * Returns a board with the current piece colored in.
+ * @param {GameState}
+ * @returns {Board}
+ */
 logic.drawable = function(gs) {
     var b = Object.create(gs.board);
     _.each(logic.blockCells(gs.currentPiece), function(pos) {
@@ -227,6 +274,20 @@ logic.collision = function(board, piece) {
     });
 };
 
+/**
+ * @function Move
+ * @param {Piece} p
+ * @returns {Piece}
+ */
+
+/**
+ * Given a function which updates the Piece,
+ * and a GameState, return an updated GameState.
+ * This function is curried.
+ * @param {Move} move
+ * @param {GameState} oldGame
+ * @returns {GameState}
+ */
 logic.makeMove = function(move) {
     return function(oldGame) {
         var newPiece = move(oldGame.currentPiece);
@@ -240,6 +301,12 @@ logic.makeMove = function(move) {
     };
 };
 
+/**
+ * Translate a Piece by the given vector.  This function is curried.
+ * @param {V2} v
+ * @param {Piece} p
+ * @returns {Piece}
+ */
 logic.translate = function(v) {
     return function(p) {
         var q = Object.create(p);
@@ -248,6 +315,12 @@ logic.translate = function(v) {
     };
 };
 
+/**
+ * Rotate a Piece cw quarter-turns clockwise.  This function is curried.
+ * @param {number} cw
+ * @param {Piece} p
+ * @returns {Piece}
+ */
 logic.rotate = function(cw) {
     return function(p) {
         var q = Object.create(p);
