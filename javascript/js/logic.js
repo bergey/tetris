@@ -1,5 +1,9 @@
 /* global require, module */
 
+/**
+ * @module logic
+ */
+
 "use strict";
 
 var _ = require("lodash");
@@ -17,16 +21,16 @@ if (!_.hasOwnProperty("negate")) {
     };
 }
 
-// 7 possible shapes, plus black for the background
-var boardWidth = 10;  // number of cells in each row of the game board
-var boardHeight = 20; // number of rows in the game board
-var colors = ["grey17", "red3", "darkgoldenrod", "aquamarine", "deeppink4", "forestgreen", "royalblue4", "blueviolet"];
+var logic = {};
 
-var ret = {};
+// 7 possible shapes, plus black for the background
+logic.boardWidth = 10;  // number of cells in each row of the game board
+logic.boardHeight = 20; // number of rows in the game board
+var colors = ["grey17", "red3", "darkgoldenrod", "aquamarine", "deeppink4", "forestgreen", "royalblue4", "blueviolet"];
 
 // debugging
 // increment all block ids by 1
-ret.incrementBoard = function(board) {
+logic.incrementBoard = function(board) {
     return _.map(board, function(row) {
         return _.map(row, function(c) {
             return (c+1) % 7;
@@ -36,7 +40,7 @@ ret.incrementBoard = function(board) {
 
 // debugging
 // decrement all block ids by 1
-ret.decrementBoard = function(board) {
+logic.decrementBoard = function(board) {
     return _.map(board, function(row) {
         return _.map(row, function(c) {
             return (c+7-1) % 7;
@@ -44,38 +48,80 @@ ret.decrementBoard = function(board) {
     });
 };
 
-ret.nextBlock = function(prng) {
+/**
+ * A number between 1 and 7, inclusive, representing a tetris block.
+ * @typedef {number} Block
+ */
+
+/**
+ * A number between 0 and 7, inclusive, representing a tetris block or
+ * an empty position.
+ * @typedef {number} MaybeBlock
+ */
+
+/**
+ * Returns a random tetris block.
+ * @param prng - the random number generator
+ * @returns {Block} - a new block
+ */
+logic.nextBlock = function(prng) {
     return Math.floor(prng() * 7) + 1;
 };
 
-ret.color = function(shape) {
+/**
+ * Returns the color corresponding to a given Block.
+ * @param {Block} shape
+ * @returns {string} color
+ */
+logic.color = function(shape) {
     return colors[shape];
 };
 
-ret.blankRow = function() {
-    return _.map(_.range(boardWidth), _.constant(0));
+/**
+ * Returns a new board row, with all cells empty.
+ * @returns {Array.<MaybeBlock>} row
+ */
+logic.blankRow = function() {
+    return _.times(logic.boardWidth, _.constant(0));
 };
+
+/**
+ * A Row is represented as a list of cells, beginning with the leftmost.
+ * The width of each row is fixed.
+ * @typedef {Array.<MaybeBlock>} Row
+ */
+
+/**
+ * A board is represented as a list of Rows, beginning with the topmost.
+ * The number of Rows in a Board is fixed.
+ * @typedef {Array.<Row>} Board
+ */
 
 // Given a list of lists, extend it to $boardHeight rows by prepending empty (0) rows.
 // If the list has $boardHeight or more rows, return it unaltered.
-ret.padBoard = function(board) {
-    return _.map(_.range(boardHeight-board.length), ret.blankRow).concat(board);
+/**
+ * Returns a Board with empty rows above (before) the provided rows.
+ * @param {Array.<Row>} partial - all the non-empty rows of the board, top first
+ * @returns {Board} the complete Board
+ */
+logic.padBoard = function(partial) {
+    return _.map(_.range(logic.boardHeight-partial.length), logic.blankRow).concat(partial);
 };
 
 var initialPosition = function() {
-    return Object.create([0, Math.floor(boardWidth/2)]);
+    return Object.create([0, Math.floor(logic.boardWidth/2)]);
 };
 
-ret.initialGameState = function(time) {
+logic.initialGameState = function(time) {
     var prng = seedrandom();
     return {
         currentPiece: {
-            shape: ret.nextBlock(prng),  // 1-7
+            shape: logic.nextBlock(prng),  // 1-7
             position: initialPosition(), // (0-boardWidth, 0-boardHeight)
             orientation: 0  // 0-3
         },
-        nextBlock: ret.nextBlock(prng),
-        board: ret.padBoard([]),
+        nextBlock: logic.nextBlock(prng),
+        board: logic.padBoard([]),
         lastDrop: time, // last time the current piece moved down
         timeStep: 500, // milliseconds between piece moving down
         lines: 0,  // score, lines completed
@@ -84,42 +130,50 @@ ret.initialGameState = function(time) {
 };
 
 
-// returns True iff every cell of the row is filled
-ret.isFullRow = function(row) {
+/**
+ * Returns True if & only if every cell of the row is filled
+ * @param {Row}
+ * @returns {Bool}
+ */
+logic.isFullRow = function(row) {
     return _.every(row, function(c) {
         return c !== 0;
     });
 };
 
-// returns the number of filled rows in the board
-ret.countRows = function(board) {
-    return _.filter(board, ret.isFullRow).length;
+/**
+ * Returns the number of filled rows in the board
+ * @param {Board}
+ * @returns {number} - the count of full rows
+ */
+logic.countRows = function(board) {
+    return _.filter(board, logic.isFullRow).length;
 };
 
 // Returns a board with all full rows removed,
 // and all remaining rows at the bottom.
-ret.deleteRows = function(board) {
-    return ret.padBoard(_.filter(board, _.negate(ret.isFullRow)));
+logic.deleteRows = function(board) {
+    return logic.padBoard(_.filter(board, _.negate(logic.isFullRow)));
 };
 
 // given a board and a position as [row, column], return the specified cell of the board
-ret.lookupBoard = function(board, position) {
+logic.lookupBoard = function(board, position) {
     return board[position[0]][position[1]];
 };
 
 // multiply a 2x2 matrix r by a (column) vector v
-ret.mmul = function(r, v) {
+logic.mmul = function(r, v) {
     return [
         r[0][0]*v[0] + r[0][1]*v[1],
         r[1][0]*v[0] + r[1][1]*v[1]
     ];
 };
 
-ret.vadd = function(u, v) {
+logic.vadd = function(u, v) {
     return [u[0] + v[0], u[1] + v[1]];
 };
 
-ret.blockCells = function(p) {
+logic.blockCells = function(p) {
 
     var rot = [
         [[1,0], [0,1]],
@@ -150,14 +204,14 @@ ret.blockCells = function(p) {
 
     return _.map(offsets[p.shape], function(v) {
         // rot * v + position
-        return ret.vadd(ret.mmul(rot[p.orientation], v), p.position);
+        return logic.vadd(logic.mmul(rot[p.orientation], v), p.position);
     });
 };
 
 // returns a board with the current piece colored in.
-ret.drawable = function(gs) {
+logic.drawable = function(gs) {
     var b = Object.create(gs.board);
-    _.each(ret.blockCells(gs.currentPiece), function(pos) {
+    _.each(logic.blockCells(gs.currentPiece), function(pos) {
         b[pos[0]][pos[1]] = gs.currentPiece.shape;
     });
     return b;
@@ -165,18 +219,18 @@ ret.drawable = function(gs) {
 
 // given a board and a piece, returns True iff that piece colides
 // with others already placed.
-ret.collision = function(board, piece) {
-    return _.any(ret.blockCells(piece), function(pos) {
-        return pos[1] < 0 || pos[1] >= boardWidth ||
-            pos[0] < 0 || pos[0] >= boardHeight ||
-            ret.lookupBoard(board, pos) !== 0;
+logic.collision = function(board, piece) {
+    return _.any(logic.blockCells(piece), function(pos) {
+        return pos[1] < 0 || pos[1] >= logic.boardWidth ||
+            pos[0] < 0 || pos[0] >= logic.boardHeight ||
+            logic.lookupBoard(board, pos) !== 0;
     });
 };
 
-ret.makeMove = function(move) {
+logic.makeMove = function(move) {
     return function(oldGame) {
         var newPiece = move(oldGame.currentPiece);
-        if (ret.collision(oldGame.board, newPiece)) {
+        if (logic.collision(oldGame.board, newPiece)) {
             return oldGame;
         } else {
             var newGame = Object.create(oldGame);
@@ -186,15 +240,15 @@ ret.makeMove = function(move) {
     };
 };
 
-ret.translate = function(v) {
+logic.translate = function(v) {
     return function(p) {
         var q = Object.create(p);
-        q.position = ret.vadd(v, q.position);
+        q.position = logic.vadd(v, q.position);
         return q;
     };
 };
 
-ret.rotate = function(cw) {
+logic.rotate = function(cw) {
     return function(p) {
         var q = Object.create(p);
         q.orientation = (p.orientation + cw) % 4;
@@ -202,13 +256,13 @@ ret.rotate = function(cw) {
     };
 };
 
-ret.moveRight = ret.makeMove(ret.translate([0,1]));
-ret.moveLeft = ret.makeMove(ret.translate([0,-1]));
-ret.moveDown = ret.makeMove(ret.translate([1,0]));
-ret.rotateCW = ret.makeMove(ret.rotate(1));
-ret.rotateCCW = ret.makeMove(ret.rotate(-1));
+logic.moveRight = logic.makeMove(logic.translate([0,1]));
+logic.moveLeft = logic.makeMove(logic.translate([0,-1]));
+logic.moveDown = logic.makeMove(logic.translate([1,0]));
+logic.rotateCW = logic.makeMove(logic.rotate(1));
+logic.rotateCCW = logic.makeMove(logic.rotate(-1));
 
-ret.updateGame = function(gs, t) {
+logic.updateGame = function(gs, t) {
     var newGS, newPiece, board;
     // console.log(t - gs.lastDrop);
     if (t < gs.lastDrop + gs.timeStep) {
@@ -217,22 +271,22 @@ ret.updateGame = function(gs, t) {
     } else {
         // console.log(t - gs.lastDrop);
         // move block down if possible
-        newGS = ret.moveDown(gs);
+        newGS = logic.moveDown(gs);
         newGS.lastDrop = t;
         // if it can't move down more, score lines
-        newPiece = ret.translate([1,0])(gs.currentPiece);
-        if (ret.collision(gs.board, newPiece)) {
+        newPiece = logic.translate([1,0])(gs.currentPiece);
+        if (logic.collision(gs.board, newPiece)) {
             console.log("collision");
             console.log(newGS);
-            board = ret.drawable(newGS);
-            newGS.lines += ret.countRows(board);
-            newGS.board = ret.deleteRows(board);
+            board = logic.drawable(newGS);
+            newGS.lines += logic.countRows(board);
+            newGS.board = logic.deleteRows(board);
             newGS.currentPiece = {
                 shape: gs.nextBlock,
                 orientation: 0,
                 position: initialPosition()
             };
-            newGS.nextBlock = ret.nextBlock(newGS.prng);
+            newGS.nextBlock = logic.nextBlock(newGS.prng);
         } else {
             console.log("no collision");
         }
@@ -242,5 +296,4 @@ ret.updateGame = function(gs, t) {
     }
 };
 
-module.exports = ret;
-_
+module.exports = logic;
