@@ -1,0 +1,15 @@
+{
+  "name": "tetris",
+  "version": "0.0.0",
+  "description": "tetris game with purescript-canvas",
+  "main": "Gruntfile.js",
+  "dependencies": {
+    "grunt": "^0.4.5"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}

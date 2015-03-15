@@ -1,3 +1,5 @@
 /javascript/.sass-cache/
 /javascript/build/
 *~
+bower_components/
+node_modules/
