@@ -17,6 +17,12 @@
     "tests"
   ],
   "dependencies": {
-    "purescript-canvas": "~0.2.0"
+    "purescript-canvas": "~0.2.0",
+    "purescript-requestanimationframe": "~0.0.3",
+    "purescript-timers": "~0.0.8",
+    "purescript-monad-eff": "~0.1.0",
+    "purescript-refs": "~0.1.2",
+    "purescript-arrays": "~0.3.3",
+    "purescript-random": "~0.1.2"
   }
 }
