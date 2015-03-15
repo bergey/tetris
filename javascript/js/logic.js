@@ -26,7 +26,7 @@ var logic = {};
 // 7 possible shapes, plus black for the background
 logic.boardWidth = 10;  // number of cells in each row of the game board
 logic.boardHeight = 20; // number of rows in the game board
-var colors = ["grey17", "red3", "darkgoldenrod", "aquamarine", "deeppink4", "forestgreen", "royalblue4", "blueviolet"];
+var colors = ["gray", "red3", "darkgoldenrod", "aquamarine", "deeppink4", "forestgreen", "royalblue4", "blueviolet"];
 
 // debugging
 // increment all block ids by 1
@@ -109,7 +109,7 @@ logic.padBoard = function(partial) {
 };
 
 var initialPosition = function() {
-    return Object.create([0, Math.floor(logic.boardWidth/2)]);
+    return [Math.floor(logic.boardWidth/2), 0];
 };
 
 /**
@@ -171,7 +171,7 @@ logic.deleteRows = function(board) {
 /**
  * A board position, represented as row and column.
  * [0,0] is the upper left cell
- * [0,1] is in the top row
+ * [1,0] is in the top row
  * @typedef {Array.<number>} Position - [row, column]
  */
 
@@ -187,7 +187,7 @@ logic.deleteRows = function(board) {
  * @returns {MaybeBlock}
  */
 logic.lookupBoard = function(board, position) {
-    return board[position[0]][position[1]];
+    return board[position[1]][position[0]];
 };
 
 /**
@@ -232,17 +232,17 @@ logic.blockCells = function(p) {
         // square
         [[0,0], [0,1], [1,0], [1,1]],
         // L
-        [[1,-1], [0,-1], [0,0], [0,1]],
+        [[-1,1], [-1,0], [0,0], [1,0]],
         // Γ
-        [[0,-1], [0,0], [0,1], [1,1]],
+        [[-1,0], [0,0], [1,0], [1,1]],
         // T
-        [[0,0], [1,-1], [1,0], [1,1]],
+        [[0,0], [-1,1], [0,1], [1,1]],
         // S
-        [[0,0], [0,1], [1,-1], [1,0]],
+        [[0,0], [1,0], [-1,1], [0,1]],
         // Z
-        [[0,-1], [0,0], [1,0], [1,1]],
+        [[-1,0], [0,0], [0,1], [1,1]],
         // line
-        [[0,-2], [0,-1], [0,0], [0,1]]
+        [[-2,0], [-1,0], [0,0], [1,0]]
     ];
 
     return _.map(offsets[p.shape], function(v) {
@@ -257,9 +257,9 @@ logic.blockCells = function(p) {
  * @returns {Board}
  */
 logic.drawable = function(gs) {
-    var b = Object.create(gs.board);
+    var b = _.cloneDeep(gs.board);
     _.each(logic.blockCells(gs.currentPiece), function(pos) {
-        b[pos[0]][pos[1]] = gs.currentPiece.shape;
+        b[pos[1]][pos[0]] = gs.currentPiece.shape;
     });
     return b;
 };
@@ -290,14 +290,9 @@ logic.collision = function(board, piece) {
  */
 logic.makeMove = function(move) {
     return function(oldGame) {
-        var newPiece = move(oldGame.currentPiece);
-        if (logic.collision(oldGame.board, newPiece)) {
-            return oldGame;
-        } else {
-            var newGame = Object.create(oldGame);
-            newGame.currentPiece = newPiece;
-            return newGame;
-        }
+        var newGame = Object.create(oldGame);
+        newGame.currentPiece = move(oldGame.currentPiece);
+        return newGame;
     };
 };
 
@@ -311,6 +306,7 @@ logic.translate = function(v) {
     return function(p) {
         var q = Object.create(p);
         q.position = logic.vadd(v, q.position);
+        console.log(q);
         return q;
     };
 };
@@ -329,12 +325,34 @@ logic.rotate = function(cw) {
     };
 };
 
-logic.moveRight = logic.makeMove(logic.translate([0,1]));
-logic.moveLeft = logic.makeMove(logic.translate([0,-1]));
-logic.moveDown = logic.makeMove(logic.translate([1,0]));
+var pieceDown = logic.translate([0,1]);
+
+logic.moveRight = logic.makeMove(logic.translate([1,0]));
+logic.moveLeft = logic.makeMove(logic.translate([-1,0]));
+logic.moveDown = logic.makeMove(pieceDown);
 logic.rotateCW = logic.makeMove(logic.rotate(1));
 logic.rotateCCW = logic.makeMove(logic.rotate(-1));
 
+/**
+ * Return True if moving the current piece down one step would result
+ * in a collision with the bottom of the board or with another already
+ * placed piece.
+ * @param {GameState} gs
+ * @returns {Bool}
+ */
+logic.hitBottom = function(gs) {
+    var piece = pieceDown(gs.currentPiece);
+    return _.any(logic.blockCells(piece), function(pos) {
+        return pos[1] >= logic.boardHeight ||
+            logic.lookupBoard(gs.board, pos) !== 0;
+    });
+};
+
+/**
+ * Update a game as follows:
+ * - if gs.timeStep has passed, move the block down
+ * - if this move hits bottom, score rows and set a new block
+ */
 logic.updateGame = function(gs, t) {
     var newGS, newPiece, board;
     // console.log(t - gs.lastDrop);
@@ -342,13 +360,13 @@ logic.updateGame = function(gs, t) {
         // console.log("returning GameState unmodified");
         return gs;
     } else {
-        // console.log(t - gs.lastDrop);
+        console.log(t - gs.lastDrop);
         // move block down if possible
         newGS = logic.moveDown(gs);
         newGS.lastDrop = t;
         // if it can't move down more, score lines
-        newPiece = logic.translate([1,0])(gs.currentPiece);
-        if (logic.collision(gs.board, newPiece)) {
+        // newPiece = logic.translate([1,0])(gs.currentPiece);
+        if (logic.hitBottom(newGS)) {
             console.log("collision");
             console.log(newGS);
             board = logic.drawable(newGS);

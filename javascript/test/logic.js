@@ -20,6 +20,7 @@ describe("logic", function(){
     var fullRow = function(val) {
         return _.times(logic.boardWidth, _.constant(val));
     };
+    var fullBoard = _.times(logic.boardHeight, fullRow(3));
 
     describe("nextBlock", function() {
         var prng = seedrandom();  // TODO, should ensure reproducibility
@@ -69,7 +70,28 @@ describe("logic", function(){
             expect(logic.countRows([fullRow(2)])).equals(1);
         });
         it("should be 20 with a full board", function() {
-            expect(logic.countRows(_.times(logic.boardHeight, fullRow(3)))).equals(logic.boardHeight);
+            expect(logic.countRows(fullBoard)).equals(logic.boardHeight);
+        });
+    });
+
+    describe("hitBottom", function() {
+        it("should be false for initial game state", function() {
+            expect(logic.hitBottom(logic.initialGameState(Date.now()))).is.false;
+        });
+        it("should be true for a piece at the bottom", function() {
+            var gs = logic.initialGameState(Date.now);
+            gs.currentPiece.position[1] = logic.boardHeight;
+            expect(logic.hitBottom(gs)).is.true;
+        });
+        it("should be true for a full board", function() {
+            var gs = logic.initialGameState(Date.now);
+            gs.board = fullBoard;
+            expect(logic.hitBottom(gs)).is.true;
+        });
+        it("should be false for a board with one full row", function() {
+            var gs = logic.initialGameState(Date.now);
+            gs.board = logic.padBoard([fullRow]);
+            expect(logic.hitBottom(gs)).is.false;
         });
     });
 
