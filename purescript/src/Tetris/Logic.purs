@@ -6,7 +6,7 @@ import Tetris.Error
 import Data.Array
 import Data.Tuple
 import Data.Maybe
-import Data.Foldable hiding (lookup)
+import Data.Foldable
 import Control.Monad.Eff
 import Control.Monad.Eff.Random
 
@@ -26,10 +26,11 @@ blankRow :: [Cell]
 blankRow = replicate 10 Nothing
 
 stepGame :: forall eff. GameState -> Eff (random :: Random | eff) GameState
-stepGame gs | canDescend gs = return $ descend gs
-stepgame gs = do
-  nextShape <- randomShape
-  return $ endPiece nextShape gs
+stepGame gs = if canDescend gs
+              then return $ descend gs
+              else do
+                nextShape <- randomShape
+                return $ endPiece nextShape gs
 
 -- | @endPiece@ is called by 'stepGame' and 'dropPiece'.  It updates
 -- the piece, clears full rows, and updates the scores.
@@ -37,7 +38,7 @@ endPiece :: Shape -> GameState -> GameState
 endPiece sh gs = let
   new = clearRows $ installPiece gs.current gs.board 
   in gs
-  { current = { shape: sh, position: initialPosition, orientation: North }
+  { current = { shape: gs.next, position: initialPosition, orientation: North }
   , next = sh
   , board = new.bd
   , piecesUsed = gs.piecesUsed + 1
@@ -55,7 +56,7 @@ cells :: Piece -> [Pos]
 cells p = plus p.position <$> case p.shape of
   O -> [ pos 0 0, pos 1 0, pos 0 1, pos 1 1 ]
   L -> [ pos (-1) 0, pos 0 0, pos 1 0, pos (-1) 1 ]
-  Γ -> [ pos (-1) 0, pos 0 0, pos 1 0, pos 1 1 ]
+  G -> [ pos (-1) 0, pos 0 0, pos 1 0, pos 1 1 ]
   T -> [ pos (-1) 0, pos 0 0, pos 1 0, pos 0 1 ]
   I -> [ pos (-1) 0, pos 0 0, pos 1 0, pos 2 0 ]
   S -> [ pos 0 0, pos 1 0, pos (-1) 1, pos 0 1 ]
@@ -80,18 +81,18 @@ descend gs = gs { current = gs.current { position = plus gs.current.position (po
 -- overBoard p = or [ p.x < 0, p.x > 9, p.y < 0, p.y > 19 ]
 
 -- collision :: Board -> Pos -> Boolean
--- collision bd p = isJust $ lookup bd p
+-- collision bd p = isJust $ lookupCell bd p
 
 validPos :: Board -> Pos -> Boolean
-validPos bd p = maybe false isNothing $ lookup' bd p
+validPos bd p = maybe false isNothing $ lookupCell' bd p
 
-lookup :: Board -> Pos -> Cell
-lookup bd p = case lookup' bd p of
+lookupCell :: Board -> Pos -> Cell
+lookupCell bd p = case lookupCell' bd p of
   Nothing -> error "recieved Pos out of game board area"
   Just c -> c
 
-lookup' :: Board -> Pos -> Maybe Cell
-lookup' bd p = do
+lookupCell' :: Board -> Pos -> Maybe Cell
+lookupCell' bd p = do
   row <- bd !! p.y
   row !! p.x
 
@@ -99,14 +100,14 @@ randomShape :: forall eff. Eff (random :: Random | eff) Shape
 randomShape = cdf <$> random where
   cdf x | x < 1/7 = O
   cdf x | x < 2/7 = L
-  cdf x | x < 3/7 = Γ
+  cdf x | x < 3/7 = G
   cdf x | x < 4/7 = T
   cdf x | x < 5/7 = I
   cdf x | x < 6/7 = S
   cdf x | otherwise = Z
 
 replicate :: forall a. Number -> a -> [a]
-replicate n a = map (\_ -> a) (1..n)
+replicate n a = if n < 1 then [] else map (\_ -> a) (1..n)
 
 -- notes for not-yet-implemented
 

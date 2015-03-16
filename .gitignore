@@ -5,3 +5,4 @@ bower_components/
 node_modules/
 /purescript/.psci
 /purescript/dist/
+/purescript/.psci_modules/

@@ -10,7 +10,7 @@ type GameState =
   , rowsFinished :: Number
   }
   
-data Shape = O | L | Γ | T | I | S | Z
+data Shape = O | L | G | T | I | S | Z
                                      
 data Orientation = North | South | East | West
 
@@ -32,6 +32,7 @@ type Pos = {
   x :: Number,
   y :: Number
   }
+
 
 pos :: Number -> Number -> Pos
 pos x y = { x: x, y: y }
