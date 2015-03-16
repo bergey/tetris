@@ -10,10 +10,10 @@ import Data.Foldable
 import Control.Monad.Eff
 import Control.Monad.Eff.Random
 
--- TODO make first shape random
-initialGameState =
-  { current: { shape: O, position: initialPosition, orientation: North }
-  , next: L
+initialGameState :: Shape -> Shape -> GameState
+initialGameState first second =
+  { current: { shape: first, position: initialPosition, orientation: North }
+  , next: second
   , board: replicate 20 blankRow
   , piecesUsed: 1
   , rowsFinished: 0

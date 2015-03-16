@@ -8,6 +8,7 @@ import Tetris.Types
 import Graphics.Canvas
 
 import Data.Maybe
+import Control.Bind
 import Control.Monad.Eff
 import Control.Monad.Eff.Ref
 import Control.Timer
@@ -16,9 +17,9 @@ import Control.RAF
 main = do
   canvas <- noCanvasDie "game"
   ctx <- getContext2D canvas
-  gs <- newRef initialGameState
-  renderLoop ctx gs
-  timeout 250 $ stepLoop gs 250
+  gsRef <- newRef =<< initialGameState <$> randomShape <*> randomShape
+  renderLoop ctx gsRef
+  timeout 250 $ stepLoop gsRef 250
 
 renderLoop :: forall eff. Context2D -> RefVal GameState -> Eff ( ref :: Ref, raf :: RAF , canvas :: Canvas| eff ) Unit
 renderLoop ctx gsRef = do
