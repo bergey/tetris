@@ -66,7 +66,7 @@ cells p = plus p.position <<< reorient p.orientation <$> case p.shape of
 reorient :: Orientation -> Pos -> Pos
 reorient North p = p
 reorient West p = { x: -1 * p.y, y: p.x }
-reorient South p = { x: p.x, y: -1 * p.y }
+reorient South p = { x: -1 * p.x, y: -1 * p.y }
 reorient East p = { x: p.y, y: -1 * p.x }
 
 plus :: Pos -> Pos -> Pos
