@@ -154,3 +154,7 @@ rotatePieceCW gs = let
      then gs {current = newP }
      else gs
           
+gameOver :: GameState -> Boolean
+gameOver gs = case head gs.board of
+  Nothing -> true
+  Just row -> any isJust row

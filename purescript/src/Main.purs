@@ -36,7 +36,9 @@ stepLoop gsRef ms = do
   oldGS <- readRef gsRef
   newGS <- stepGame oldGS
   writeRef gsRef newGS
-  timeout ms $ stepLoop gsRef ms
+  if gameOver newGS
+    then return unit
+    else void $ timeout ms $ stepLoop gsRef ms
   
 noCanvasDie name = do
   mayCanvas <- getCanvasElementById name
