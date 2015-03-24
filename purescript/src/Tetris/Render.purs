@@ -8,9 +8,22 @@ import Control.Monad.Eff
 import Data.Maybe
 import Data.Foldable 
 
+scoreArea :: Rectangle
+-- scoreArea =
+--   { translateX: 10*screen.cellSize
+--   , translateY: screen.lineSpacing
+--   }
+
+scoreArea =
+  { x: 10 * screen.cellSize
+  , y: 0
+  , w: 100
+  , h: 100
+  }
+
 renderGame :: forall eff. Context2D -> GameState -> Eff (canvas :: Canvas | eff) Unit
 renderGame ctx gs = do
-  renderScore ctx gs.rowsFinished
+  renderScore ctx gs
   renderBoard ctx (gs.board)
   renderPiece ctx gs.current
 
@@ -52,10 +65,12 @@ color (Just I) = "forestgreen"
 color (Just S) = "royalblue"
 color (Just Z) = "blueviolet"
 
-renderScore :: forall eff. Context2D -> Number -> Eff (canvas :: Canvas | eff) Context2D
-renderScore ctx score = withContext ctx $ do
+renderScore :: forall eff. Context2D -> GameState -> Eff (canvas :: Canvas | eff) Context2D
+renderScore ctx gs = withContext ctx $ do
   setFillStyle "black" ctx
   setFont "10px sans-serif" ctx
-  let x = 10 * screen.cellSize + screen.gutter
-  fillText ctx (show score) 0 0
-  
+  clearRect ctx scoreArea
+  translate { translateX: scoreArea.x, translateY: scoreArea.y + screen.lineSpacing }ctx
+  fillText ctx ("rows: " ++ show gs.rowsFinished) screen.gutter 0
+  translate { translateX: 0, translateY: screen.lineSpacing } ctx
+  fillText ctx ("pieces: " ++ show gs.piecesUsed) screen.gutter 0
