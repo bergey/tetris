@@ -7,7 +7,8 @@
     "grunt": "^0.4.5"
   },
   "devDependencies": {
-    "grunt-purescript": "^0.6.0"
+    "grunt-purescript": "^0.6.0",
+    "grunt-release-branch": "^0.2.0"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
