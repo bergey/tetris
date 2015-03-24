@@ -21,6 +21,8 @@ main = do
   gsRef <- newRef =<< initialGameState <$> randomShape <*> randomShape
   bindKey "left" $ modifyRef gsRef moveLeft
   bindKey "right" $ modifyRef gsRef moveRight
+  bindKey "down" $ modifyRef gsRef dropPiece
+  bindKey "up" $ modifyRef gsRef rotatePieceCW
   renderLoop ctx gsRef
   timeout 250 $ stepLoop gsRef 250
 

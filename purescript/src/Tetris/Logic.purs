@@ -53,7 +53,7 @@ updateBoard c p bd = modifyAt p.y (updateAt p.x c) bd
 
 -- TODO handle orientation
 cells :: Piece -> [Pos]
-cells p = plus p.position <$> case p.shape of
+cells p = plus p.position <<< reorient p.orientation <$> case p.shape of
   O -> [ pos 0 0, pos 1 0, pos 0 1, pos 1 1 ]
   L -> [ pos (-1) 0, pos 0 0, pos 1 0, pos (-1) 1 ]
   G -> [ pos (-1) 0, pos 0 0, pos 1 0, pos 1 1 ]
@@ -61,6 +61,13 @@ cells p = plus p.position <$> case p.shape of
   I -> [ pos (-1) 0, pos 0 0, pos 1 0, pos 2 0 ]
   S -> [ pos 0 0, pos 1 0, pos (-1) 1, pos 0 1 ]
   Z -> [ pos (-1) 0, pos 0 0, pos 0 1, pos 1 1 ]
+
+-- | this is rotation by multiples of quarter-turn
+reorient :: Orientation -> Pos -> Pos
+reorient North p = p
+reorient West p = { x: -1 * p.y, y: p.x }
+reorient South p = { x: p.x, y: -1 * p.y }
+reorient East p = { x: p.y, y: -1 * p.x }
 
 plus :: Pos -> Pos -> Pos
 plus u v = { x: u.x + v.x, y: u.y + v.y }
@@ -112,18 +119,10 @@ randomShape = cdf <$> random where
 replicate :: forall a. Number -> a -> [a]
 replicate n a = if n < 1 then [] else map (\_ -> a) (1..n)
 
--- notes for not-yet-implemented
-
--- stepTime :: GS -> IO GS
--- stepTime gs = if canAdvance gs
---               then return (dropPiece gs)
---               else nextPiece gs <$> genPiece
-  
-
--- dropPiece :: Board -> Piece -> Piece
--- dropPiece b p = if canAdvance b p
---                      then dropPiece b (p & position.y +~ 1)
---                   else pc
+dropPiece :: GameState -> GameState
+dropPiece gs = if canDescend gs
+                then dropPiece $ moveDown gs
+                else gs
 
 movePiece :: Pos -> GameState -> GameState
 movePiece dp gs = if validMove dp gs
@@ -136,3 +135,22 @@ moveLeft = movePiece {x: -1, y: 0}
 
 moveRight :: GameState -> GameState
 moveRight = movePiece {x: 1, y: 0}
+
+moveDown :: GameState -> GameState
+moveDown = movePiece {x: 0, y: 1}
+
+clockwise :: Orientation -> Orientation
+clockwise North = East
+clockwise East = South
+clockwise South = West
+clockwise West = North
+
+rotatePieceCW :: GameState -> GameState
+rotatePieceCW gs = let
+  newP = gs.current {
+    orientation = clockwise gs.current.orientation
+    }
+  in if all (validPos gs.board) (cells newP) 
+     then gs {current = newP }
+     else gs
+          
