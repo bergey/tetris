@@ -4,6 +4,7 @@ import Tetris.Error
 import Tetris.Render
 import Tetris.Logic
 import Tetris.Types
+import Keymaster
 
 import Graphics.Canvas
 
@@ -18,6 +19,8 @@ main = do
   canvas <- noCanvasDie "game"
   ctx <- getContext2D canvas
   gsRef <- newRef =<< initialGameState <$> randomShape <*> randomShape
+  bindKey "left" $ modifyRef gsRef moveLeft
+  bindKey "right" $ modifyRef gsRef moveRight
   renderLoop ctx gsRef
   timeout 250 $ stepLoop gsRef 250
 

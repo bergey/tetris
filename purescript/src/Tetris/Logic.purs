@@ -122,3 +122,13 @@ replicate n a = if n < 1 then [] else map (\_ -> a) (1..n)
 --                      then dropPiece b (p & position.y +~ 1)
 --                   else pc
 
+movePiece :: Pos -> GameState -> GameState
+movePiece dp gs = gs { current =
+                          gs.current { position =
+                                          plus gs.current.position dp }}
+
+moveLeft :: GameState -> GameState
+moveLeft = movePiece {x: -1, y: 0}
+
+moveRight :: GameState -> GameState
+moveRight = movePiece {x: 1, y: 0}
