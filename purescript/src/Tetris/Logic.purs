@@ -71,11 +71,14 @@ clearRows bd = { scored: scored, bd: append blanks kept } where
   blanks = replicate scored blankRow
   scored = 20 - length kept
 
+validMove :: Pos -> GameState -> Boolean
+validMove dp gs = all (validPos gs.board) $ cells (gs.current { position = plus gs.current.position dp})
+
 canDescend :: GameState -> Boolean
-canDescend gs = all (validPos gs.board) $ cells (gs.current { position = plus gs.current.position (pos 0 1)})
+canDescend = validMove {x: 0, y: 1}
 
 descend :: GameState -> GameState
-descend gs = gs { current = gs.current { position = plus gs.current.position (pos 0 1) } }
+descend gs = gs { current = gs.current { position = plus gs.current.position {x: 0, y: 1} } }
 
 -- overBoard :: Pos -> Boolean
 -- overBoard p = or [ p.x < 0, p.x > 9, p.y < 0, p.y > 19 ]
@@ -123,9 +126,10 @@ replicate n a = if n < 1 then [] else map (\_ -> a) (1..n)
 --                   else pc
 
 movePiece :: Pos -> GameState -> GameState
-movePiece dp gs = gs { current =
-                          gs.current { position =
-                                          plus gs.current.position dp }}
+movePiece dp gs = if validMove dp gs
+                  then gs { current =
+                               gs.current { position = plus gs.current.position dp }}
+                  else gs
 
 moveLeft :: GameState -> GameState
 moveLeft = movePiece {x: -1, y: 0}
