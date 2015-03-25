@@ -609,7 +609,7 @@ PS.Control_Timer = (function () {
   function timeout(time){
     return function(fn){
       return function(){
-        return globalEnv.setTimeout(function(){
+        return window.setTimeout(function(){
           fn();
         }, time);
       };
@@ -653,10 +653,10 @@ var PS = PS || {};
 PS.Control_Bind = (function () {
     "use strict";
     var Prelude = PS.Prelude;
-    var $eq$less$less = function (__dict_Bind_42) {
+    var $eq$less$less = function (__dict_Bind_43) {
         return function (f) {
             return function (m) {
-                return Prelude[">>="](__dict_Bind_42)(m)(f);
+                return Prelude[">>="](__dict_Bind_43)(m)(f);
             };
         };
     };
@@ -668,10 +668,10 @@ var PS = PS || {};
 PS.Control_Apply = (function () {
     "use strict";
     var Prelude = PS.Prelude;
-    var $times$greater = function (__dict_Apply_47) {
+    var $times$greater = function (__dict_Apply_48) {
         return function (a) {
             return function (b) {
-                return Prelude["<*>"](__dict_Apply_47)(Prelude["<$>"](__dict_Apply_47["__superclass_Prelude.Functor_0"]())(Prelude["const"](Prelude.id(Prelude.categoryArr)))(a))(b);
+                return Prelude["<*>"](__dict_Apply_48)(Prelude["<$>"](__dict_Apply_48["__superclass_Prelude.Functor_0"]())(Prelude["const"](Prelude.id(Prelude.categoryArr)))(a))(b);
             };
         };
     };
@@ -900,27 +900,27 @@ PS.Data_Foldable = (function () {
     var foldr = function (dict) {
         return dict.foldr;
     };
-    var traverse_ = function (__dict_Applicative_269) {
-        return function (__dict_Foldable_270) {
+    var traverse_ = function (__dict_Applicative_270) {
+        return function (__dict_Foldable_271) {
             return function (f) {
-                return foldr(__dict_Foldable_270)(Prelude["<<<"](Prelude.semigroupoidArr)(Control_Apply["*>"](__dict_Applicative_269["__superclass_Prelude.Apply_0"]()))(f))(Prelude.pure(__dict_Applicative_269)(Prelude.unit));
+                return foldr(__dict_Foldable_271)(Prelude["<<<"](Prelude.semigroupoidArr)(Control_Apply["*>"](__dict_Applicative_270["__superclass_Prelude.Apply_0"]()))(f))(Prelude.pure(__dict_Applicative_270)(Prelude.unit));
             };
         };
     };
     var foldl = function (dict) {
         return dict.foldl;
     };
-    var or = function (__dict_Foldable_279) {
-        return foldl(__dict_Foldable_279)(Prelude["||"](Prelude.boolLikeBoolean))(false);
+    var or = function (__dict_Foldable_280) {
+        return foldl(__dict_Foldable_280)(Prelude["||"](Prelude.boolLikeBoolean))(false);
     };
-    var foldableArray = new Foldable(function (__dict_Monoid_287) {
+    var foldableArray = new Foldable(function (__dict_Monoid_288) {
         return function (f) {
             return function (xs) {
                 return foldr(foldableArray)(function (x) {
                     return function (acc) {
-                        return Prelude["<>"](__dict_Monoid_287["__superclass_Prelude.Semigroup_0"]())(f(x))(acc);
+                        return Prelude["<>"](__dict_Monoid_288["__superclass_Prelude.Semigroup_0"]())(f(x))(acc);
                     };
-                })(Data_Monoid.mempty(__dict_Monoid_287))(xs);
+                })(Data_Monoid.mempty(__dict_Monoid_288))(xs);
             };
         };
     }, function (f) {
@@ -939,19 +939,19 @@ PS.Data_Foldable = (function () {
     var foldMap = function (dict) {
         return dict.foldMap;
     };
-    var any = function (__dict_Foldable_296) {
+    var any = function (__dict_Foldable_297) {
         return function (p) {
-            return Prelude["<<<"](Prelude.semigroupoidArr)(or(foldableArray))(foldMap(__dict_Foldable_296)(Data_Monoid.monoidArray)(function (x) {
+            return Prelude["<<<"](Prelude.semigroupoidArr)(or(foldableArray))(foldMap(__dict_Foldable_297)(Data_Monoid.monoidArray)(function (x) {
                 return [ p(x) ];
             }));
         };
     };
-    var and = function (__dict_Foldable_301) {
-        return foldl(__dict_Foldable_301)(Prelude["&&"](Prelude.boolLikeBoolean))(true);
+    var and = function (__dict_Foldable_302) {
+        return foldl(__dict_Foldable_302)(Prelude["&&"](Prelude.boolLikeBoolean))(true);
     };
-    var all = function (__dict_Foldable_302) {
+    var all = function (__dict_Foldable_303) {
         return function (p) {
-            return Prelude["<<<"](Prelude.semigroupoidArr)(and(foldableArray))(foldMap(__dict_Foldable_302)(Data_Monoid.monoidArray)(function (x) {
+            return Prelude["<<<"](Prelude.semigroupoidArr)(and(foldableArray))(foldMap(__dict_Foldable_303)(Data_Monoid.monoidArray)(function (x) {
                 return [ p(x) ];
             }));
         };
